@@ -75,6 +75,8 @@ public class LocalVpnService extends VpnService {
         }
 
 
+
+
     }
 
     private void setupVPN() {
@@ -181,7 +183,7 @@ public class LocalVpnService extends VpnService {
         }
     }
 
-    private void cleanup() {
+    private  void cleanup() {
         deviceToNetworkTCPQueue = null;
         deviceToNetworkUDPQueue = null;
         networkToDeviceQueue = null;
@@ -206,4 +208,6 @@ public class LocalVpnService extends VpnService {
         cleanup();
         Log.i(TAG, "Stopped");
     }
+
+
 }

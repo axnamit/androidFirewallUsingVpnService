@@ -154,9 +154,9 @@ public class Packet
         int sum = 0;
         while (ipLength > 0)
         {
-            sum += BitUtils.getUnsignedShort(buffer.getShort());
-            ipLength -= 2;
-        }
+        sum += BitUtils.getUnsignedShort(buffer.getShort());
+        ipLength -= 2;
+    }
         while (sum >> 16 > 0)
             sum = (sum & 0xFFFF) + (sum >> 16);
 

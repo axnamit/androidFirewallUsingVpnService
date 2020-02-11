@@ -82,4 +82,10 @@ public class MainActivity extends AppCompatActivity {
             vpnButton.setText("started");
         }
     }
+
+    private void stopVpn(){
+
+        Singleton.getInstance().setNetBool(true);
+
+    }
 }
