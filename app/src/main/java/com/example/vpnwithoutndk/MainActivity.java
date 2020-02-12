@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+    public StopListenrService stopListenrService1;
 
     private static final int VPN_REQUEST_CODE = 0x0F;
 
@@ -27,30 +28,36 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+    private Button vpnButton, vpnStopButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final Button vpnButton = (Button) findViewById(R.id.button);
+        vpnButton = (Button) findViewById(R.id.button);
+        vpnStopButton = findViewById(R.id.button2);
         vpnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startVPN();
             }
         });
+        vpnStopButton.setOnClickListener(v -> {
+            if (stopListenrService1!=null) {
+                stopListenrService1.onItemClick();
+            }
+        });
+
         waitingForVPNStart = false;
         LocalBroadcastManager.getInstance(this).registerReceiver(vpnStateReceiver,
                 new IntentFilter(LocalVpnService.BROADCAST_VPN_STATE));
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK)
-        {
+        if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK) {
             waitingForVPNStart = true;
             startService(new Intent(this, LocalVpnService.class));
             enableButton(false);
@@ -83,9 +90,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void stopVpn(){
+public void onBindListner(StopListenrService stopListenrService){
+        this.stopListenrService1 = stopListenrService;
+}
 
-        Singleton.getInstance().setNetBool(true);
-
-    }
 }

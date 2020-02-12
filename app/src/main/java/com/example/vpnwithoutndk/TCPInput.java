@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.example.vpnwithoutndk.TCB.TCBStatus;
 
 public class TCPInput implements Runnable
 {
@@ -92,7 +93,7 @@ public class TCPInput implements Runnable
             if (tcb.channel.finishConnect())
             {
                 keyIterator.remove();
-                tcb.status = TCB.TCBStatus.SYN_RECEIVED;
+                tcb.status = TCBStatus.SYN_RECEIVED;
 
                 // TODO: Set MSS for receiving larger packets from the device
                 ByteBuffer responseBuffer = ByteBufferPool.acquire();
@@ -146,13 +147,13 @@ public class TCPInput implements Runnable
                 key.interestOps(0);
                 tcb.waitingForNetworkData = false;
 
-                if (tcb.status != TCB.TCBStatus.CLOSE_WAIT)
+                if (tcb.status != TCBStatus.CLOSE_WAIT)
                 {
                     ByteBufferPool.release(receiveBuffer);
                     return;
                 }
 
-                tcb.status = TCB.TCBStatus.LAST_ACK;
+                tcb.status = TCBStatus.LAST_ACK;
                 referencePacket.updateTCPBuffer(receiveBuffer, (byte) Packet.TCPHeader.FIN, tcb.mySequenceNum, tcb.myAcknowledgementNum, 0);
                 tcb.mySequenceNum++; // FIN counts as a byte
             }

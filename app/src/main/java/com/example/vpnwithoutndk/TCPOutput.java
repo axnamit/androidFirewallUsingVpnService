@@ -44,7 +44,6 @@ public class TCPOutput implements Runnable
     public TCPOutput(ConcurrentLinkedQueue<Packet> inputQueue, ConcurrentLinkedQueue<ByteBuffer> outputQueue,
                      Selector selector, LocalVpnService vpnService)
     {
-        System.out.println("input queue"+inputQueue);
         this.inputQueue = inputQueue;
         this.outputQueue = outputQueue;
         this.selector = selector;
@@ -82,8 +81,6 @@ public class TCPOutput implements Runnable
 
                 TCPHeader tcpHeader = currentPacket.tcpHeader;
                 int destinationPort = tcpHeader.destinationPort;
-
-                System.out.println("destinationAddress:"+destinationAddress.getHostAddress());
                 int sourcePort = tcpHeader.sourcePort;
 
                 String ipAndPort = destinationAddress.getHostAddress() + ":" +
