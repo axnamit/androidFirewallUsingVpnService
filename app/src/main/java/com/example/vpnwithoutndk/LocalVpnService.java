@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class LocalVpnService extends VpnService   {
+public class LocalVpnService extends VpnService {
 
     private static final String TAG = LocalVpnService.class.getSimpleName();
     private static final String VPN_ADDRESS = "10.0.0.2";
@@ -42,7 +42,7 @@ public class LocalVpnService extends VpnService   {
 
 
     String[] appPackages = {
-            "com.example.vpnwithoutndk",
+            /*"com.example.vpnwithoutndk",*/
             "com.google.android.youtube"};
     private static Boolean isRunning = false;
 
@@ -71,8 +71,8 @@ public class LocalVpnService extends VpnService   {
             deviceToNetworkUDPQueue = new ConcurrentLinkedQueue<>();
             deviceToNetworkTCPQueue = new ConcurrentLinkedQueue<>();
             networkToDeviceQueue = new ConcurrentLinkedQueue<>();
-            if(deviceToNetworkTCPQueue.iterator().hasNext()){
-                System.out.println("deviceTONetwork"+deviceToNetworkTCPQueue.toArray());
+            if (deviceToNetworkTCPQueue.iterator().hasNext()) {
+                System.out.println("deviceTONetwork" + deviceToNetworkTCPQueue.toArray());
             }
 
             for (Packet packet : deviceToNetworkTCPQueue) {
@@ -135,8 +135,8 @@ public class LocalVpnService extends VpnService   {
             builder.addAddress(VPN_ADDRESS, 32);
             //builder.addAddress(VPN_ADDRESS_IPV6,128 );
             builder.addRoute(VPN_ROUTE, 0);
-            builder.allowBypass();
-            for (String appPackage: appPackages) {
+            // builder.allowBypass();
+           for (String appPackage: appPackages) {
                 try {
                     packageManager.getPackageInfo(appPackage, 0);
                     builder.addAllowedApplication(appPackage);
@@ -212,7 +212,7 @@ public class LocalVpnService extends VpnService   {
                     if (bufferFromNetwork != null) {
                         bufferFromNetwork.flip();
                         while (bufferFromNetwork.hasRemaining()) {
-                            vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
+                            //vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
                         }
                         dataReceived = true;
 

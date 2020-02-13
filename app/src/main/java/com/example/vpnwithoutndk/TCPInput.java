@@ -135,7 +135,7 @@ public class TCPInput implements Runnable
             String[] ss = tcb.ipAndPort.split(":");
             System.out.println("fromdevicetoNetwork"+ ss[0]);
 
-            if(ss[0].equalsIgnoreCase("157.240.198.35")){
+            if(ss[0].equalsIgnoreCase("23.58.76.234")){
                 System.out.println("matched facebook url");
                 return;
             }
