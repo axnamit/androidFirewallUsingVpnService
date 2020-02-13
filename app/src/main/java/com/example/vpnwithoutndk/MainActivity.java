@@ -28,26 +28,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
-    private Button vpnButton, vpnStopButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        vpnButton = (Button) findViewById(R.id.button);
-        vpnStopButton = findViewById(R.id.button2);
-        vpnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startVPN();
-            }
-        });
-        vpnStopButton.setOnClickListener(v -> {
-            if (stopListenrService1!=null) {
-                stopListenrService1.onItemClick();
-            }
-        });
+        Button vpnButton = findViewById(R.id.button);
+        Button vpnStopButton = findViewById(R.id.button2);
+        vpnButton.setOnClickListener(v -> startVPN());
+        vpnStopButton.setOnClickListener(v ->
+                startService(getServiceIntent().setAction(LocalVpnService.ACTION_DISCONNECT)));
 
         waitingForVPNStart = false;
         LocalBroadcastManager.getInstance(this).registerReceiver(vpnStateReceiver,
@@ -90,8 +81,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-public void onBindListner(StopListenrService stopListenrService){
+    public void onBindListner(StopListenrService stopListenrService) {
         this.stopListenrService1 = stopListenrService;
-}
+    }
+
+    private Intent getServiceIntent() {
+        return new Intent(this, LocalVpnService.class);
+    }
+
 
 }

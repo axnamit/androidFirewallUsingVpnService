@@ -49,7 +49,7 @@ public class TCB
     public boolean waitingForNetworkData;
     public SelectionKey selectionKey;
 
-    private static final int MAX_CACHE_SIZE = 50; // XXX: Is this ideal?
+    private static final int MAX_CACHE_SIZE = 150; // XXX: Is this ideal?
     private static LRUCache<String, TCB> tcbCache =
             new LRUCache<>(MAX_CACHE_SIZE, new LRUCache.CleanupCallback<String, TCB>()
             {

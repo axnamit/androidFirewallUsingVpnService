@@ -18,6 +18,8 @@ package com.example.vpnwithoutndk;
 
 import android.util.Log;
 
+import com.example.vpnwithoutndk.TCB.TCBStatus;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -26,8 +28,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import com.example.vpnwithoutndk.TCB.TCBStatus;
 
 public class TCPInput implements Runnable
 {
@@ -95,6 +95,7 @@ public class TCPInput implements Runnable
                 keyIterator.remove();
                 tcb.status = TCBStatus.SYN_RECEIVED;
 
+
                 // TODO: Set MSS for receiving larger packets from the device
                 ByteBuffer responseBuffer = ByteBufferPool.acquire();
                 referencePacket.updateTCPBuffer(responseBuffer, (byte) (Packet.TCPHeader.SYN | Packet.TCPHeader.ACK),
@@ -127,14 +128,39 @@ public class TCPInput implements Runnable
         {
             Packet referencePacket = tcb.referencePacket;
             SocketChannel inputChannel = (SocketChannel) key.channel();
+
+            System.out.println("header"+referencePacket.ip4Header);
+
+            /*104.89.112.119*/
+            String[] ss = tcb.ipAndPort.split(":");
+            System.out.println("fromdevicetoNetwork"+ ss[0]);
+
+            if(ss[0].equalsIgnoreCase("157.240.198.35")){
+                System.out.println("matched facebook url");
+                return;
+            }
+
+            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }*/
+
             int readBytes;
             try
             {
-                readBytes = inputChannel.read(receiveBuffer);
+                if (inputChannel.isConnected()) {
+                    readBytes = inputChannel.read(receiveBuffer);
+                } else {
+                    inputChannel= (SocketChannel) key.channel();
+                    readBytes = inputChannel.read(receiveBuffer);
+                }
             }
             catch (IOException e)
             {
-                Log.e(TAG, "Network read error: " + tcb.ipAndPort, e);
+                //Log.e(TAG, "Network read error: " + tcb.ipAndPort, e);
+                Log.d(TAG, "processInput: "+e.getMessage());
                 referencePacket.updateTCPBuffer(receiveBuffer, (byte) Packet.TCPHeader.RST, 0, tcb.myAcknowledgementNum, 0);
                 outputQueue.offer(receiveBuffer);
                 TCB.closeTCB(tcb);

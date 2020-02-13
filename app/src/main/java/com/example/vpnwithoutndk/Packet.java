@@ -92,7 +92,8 @@ public class Packet
         }
     }
 
-    public void updateTCPBuffer(ByteBuffer buffer, byte flags, long sequenceNum, long ackNum, int payloadSize)
+    public void updateTCPBuffer(ByteBuffer buffer, byte flags,
+                                long sequenceNum, long ackNum, int payloadSize)
     {
         buffer.position(0);
         fillHeader(buffer);
@@ -121,7 +122,8 @@ public class Packet
         updateIP4Checksum();
     }
 
-    public void updateUDPBuffer(ByteBuffer buffer, int payloadSize)
+    public void updateUDPBuffer(ByteBuffer buffer,
+                                int payloadSize)
     {
         buffer.position(0);
         fillHeader(buffer);

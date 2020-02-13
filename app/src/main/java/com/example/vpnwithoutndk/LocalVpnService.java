@@ -1,11 +1,20 @@
 package com.example.vpnwithoutndk;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.VpnService;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.Closeable;
@@ -20,17 +29,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class LocalVpnService extends VpnService  {
+public class LocalVpnService extends VpnService   {
 
     private static final String TAG = LocalVpnService.class.getSimpleName();
     private static final String VPN_ADDRESS = "10.0.0.2";
-   // private static final String VPN_ADDRESS_IPV6 ="0000:0000:0000:0000:0000:ffff:0a00:0002";
+    // private static final String VPN_ADDRESS_IPV6 ="0000:0000:0000:0000:0000:ffff:0a00:0002";
 
     private static final String VPN_ROUTE = "0.0.0.0";
 
     public static final String BROADCAST_VPN_STATE = "com.example.vpnwithoutndk.VPN_STATE";
+    public static final String ACTION_DISCONNECT = "com.example.vpnwithoutndk.STOP";
 
 
+    String[] appPackages = {
+            "com.example.vpnwithoutndk",
+            "com.google.android.youtube"};
     private static Boolean isRunning = false;
 
     private ParcelFileDescriptor vpnInterface = null;
@@ -58,6 +71,9 @@ public class LocalVpnService extends VpnService  {
             deviceToNetworkUDPQueue = new ConcurrentLinkedQueue<>();
             deviceToNetworkTCPQueue = new ConcurrentLinkedQueue<>();
             networkToDeviceQueue = new ConcurrentLinkedQueue<>();
+            if(deviceToNetworkTCPQueue.iterator().hasNext()){
+                System.out.println("deviceTONetwork"+deviceToNetworkTCPQueue.toArray());
+            }
 
             for (Packet packet : deviceToNetworkTCPQueue) {
                 ByteBuffer backingBuffer = packet.backingBuffer;
@@ -68,7 +84,7 @@ public class LocalVpnService extends VpnService  {
 
             }
 
-            executorService = Executors.newFixedThreadPool(5);
+            executorService = Executors.newFixedThreadPool(25);
             executorService.submit(new UDPInput(networkToDeviceQueue, udpSelector));
             executorService.submit(new UDPOutput(deviceToNetworkUDPQueue, udpSelector, this));
             executorService.submit(new TCPInput(networkToDeviceQueue, tcpSelector));
@@ -89,25 +105,52 @@ public class LocalVpnService extends VpnService  {
         mainActivity.onBindListner(new StopListenrService() {
             @Override
             public void onItemClick() {
+                VpnService.Builder builder;
+
+
                 disconnect();
             }
         });
 
 
-
     }
+/*
+    @Override
+    public boolean handleMessage(Message message) {
+        Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            updateForegroundNotification(message.what);
+        }
+
+        return true;
+    }*/
 
     private void setupVPN() {
         if (vpnInterface == null) {
+
+            PackageManager packageManager = getPackageManager();
+
             Builder builder = new Builder();
             builder.addAddress(VPN_ADDRESS, 32);
             //builder.addAddress(VPN_ADDRESS_IPV6,128 );
             builder.addRoute(VPN_ROUTE, 0);
             builder.allowBypass();
-            vpnInterface = builder.setSession(getString(R.string.app_name)).setConfigureIntent(pendingIntent).establish();
+            for (String appPackage: appPackages) {
+                try {
+                    packageManager.getPackageInfo(appPackage, 0);
+                    builder.addAllowedApplication(appPackage);
+                } catch (PackageManager.NameNotFoundException e) {
+                    // The app isn't installed.
+                }
+            }
+            vpnInterface = builder.setSession(getString(R.string.app_name))
+                    .setConfigureIntent(pendingIntent).establish();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                updateForegroundNotification(0);
+            }
         }
     }
-
 
 
     private static class VPNRunnable implements Runnable {
@@ -169,8 +212,9 @@ public class LocalVpnService extends VpnService  {
                     if (bufferFromNetwork != null) {
                         bufferFromNetwork.flip();
                         while (bufferFromNetwork.hasRemaining()) {
-                           vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
-                        }dataReceived = true;
+                            vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
+                        }
+                        dataReceived = true;
 
                         ByteBufferPool.release(bufferFromNetwork);
                     } else {
@@ -234,6 +278,21 @@ public class LocalVpnService extends VpnService  {
         executorService.shutdownNow();
         cleanup();
         stopForeground(true);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void updateForegroundNotification(final int message) {
+        final String NOTIFICATION_CHANNEL_ID = "Vpn";
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        mNotificationManager.createNotificationChannel(new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_ID,
+                NotificationManager.IMPORTANCE_DEFAULT));
+        startForeground(1, new Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                //.setContentText(getString(message))
+                .setContentIntent(pendingIntent)
+                .build());
     }
 
 

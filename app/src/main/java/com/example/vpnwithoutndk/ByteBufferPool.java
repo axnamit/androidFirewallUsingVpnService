@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ByteBufferPool {
-    private static final int BUFFER_SIZE = 24576/*32768*/ /*16384*/; // XXX: Is this ideal?
+    private static final int BUFFER_SIZE = 65536/*24576*//*32768*/ /*16384*/; // XXX: Is this ideal?
     private static ConcurrentLinkedQueue<ByteBuffer> pool = new ConcurrentLinkedQueue<>();
 
     public static ByteBuffer acquire() {
