@@ -43,7 +43,8 @@ public class LocalVpnService extends VpnService {
 
     String[] appPackages = {
             /*"com.example.vpnwithoutndk",*/
-            "com.google.android.youtube"};
+            "com.google.android.youtube"
+    };
     private static Boolean isRunning = false;
 
     private ParcelFileDescriptor vpnInterface = null;
@@ -136,16 +137,18 @@ public class LocalVpnService extends VpnService {
             //builder.addAddress(VPN_ADDRESS_IPV6,128 );
             builder.addRoute(VPN_ROUTE, 0);
             // builder.allowBypass();
-           for (String appPackage: appPackages) {
+         /*  for (String appPackage: appPackages) {
                 try {
                     packageManager.getPackageInfo(appPackage, 0);
                     builder.addAllowedApplication(appPackage);
                 } catch (PackageManager.NameNotFoundException e) {
                     // The app isn't installed.
                 }
-            }
-            vpnInterface = builder.setSession(getString(R.string.app_name))
-                    .setConfigureIntent(pendingIntent).establish();
+            }*/
+            vpnInterface = builder
+                    .setSession(getString(R.string.app_name))
+                    .setConfigureIntent(pendingIntent)
+                    .establish();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 updateForegroundNotification(0);
             }
@@ -181,6 +184,13 @@ public class LocalVpnService extends VpnService {
 
 
             try {
+                System.out.println("vpninput"+ vpnInput.size());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            try {
                 ByteBuffer bufferToNetwork = null;
                 boolean dataSent = true;
                 boolean dataReceived;
@@ -191,10 +201,16 @@ public class LocalVpnService extends VpnService {
                         bufferToNetwork.clear();
                     // TODO: Block when not connected
                     int readBytes = vpnInput.read(bufferToNetwork);
+
+
+
                     if (readBytes > 0) {
                         dataSent = true;
                         bufferToNetwork.flip();
                         Packet packet = new Packet(bufferToNetwork);
+
+
+
                         if (packet.isUDP()) {
                             deviceToNetworkUDPQueue.offer(packet);
                         } else if (packet.isTCP()) {
@@ -212,7 +228,7 @@ public class LocalVpnService extends VpnService {
                     if (bufferFromNetwork != null) {
                         bufferFromNetwork.flip();
                         while (bufferFromNetwork.hasRemaining()) {
-                            //vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
+                            vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
                         }
                         dataReceived = true;
 
