@@ -18,7 +18,7 @@ public class TestAPi {
 
     public static void main(String[] args) {
         // The URL for which IP address needs to be fetched
-        String s = "https://www.amazon.in/";/*143.204.254.3 *//*13.35.131.142*/
+        String s = "https://web.whatsapp.com/";/*143.204.254.3 *//*13.35.131.142*/
         try {
             // Fetch IP address by getByName()
             InetAddress ip = InetAddress.getByName(new URL(s)

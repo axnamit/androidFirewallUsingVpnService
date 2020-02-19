@@ -37,8 +37,13 @@ public class MainActivity extends AppCompatActivity {
         Button vpnButton = findViewById(R.id.button);
         Button vpnStopButton = findViewById(R.id.button2);
         vpnButton.setOnClickListener(v -> startVPN());
-        vpnStopButton.setOnClickListener(v ->
-                startService(getServiceIntent().setAction(LocalVpnService.ACTION_DISCONNECT)));
+        vpnStopButton.setOnClickListener(v -> {
+                    stopService(new Intent(this, LocalVpnService.class));
+                    enableButton(true);
+                    waitingForVPNStart = false;
+
+                }
+        );
 
         waitingForVPNStart = false;
         LocalBroadcastManager.getInstance(this).registerReceiver(vpnStateReceiver,
@@ -50,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK) {
             waitingForVPNStart = true;
+
+
             startService(new Intent(this, LocalVpnService.class));
             enableButton(false);
         }

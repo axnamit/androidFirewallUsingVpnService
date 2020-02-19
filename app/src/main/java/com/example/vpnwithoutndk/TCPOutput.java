@@ -125,7 +125,11 @@ public class TCPOutput implements Runnable {
             TCB.putTCB(ipAndPort, tcb);
 
             try {
-                outputChannel.connect(new InetSocketAddress(destinationAddress, destinationPort));
+                InetSocketAddress remote = new InetSocketAddress(destinationAddress, destinationPort);
+                outputChannel.connect(remote);
+                /*outputChannel.socket().setReuseAddress(true);
+                outputChannel.socket().bind(remote);*/
+                /*  if(outputChannel.isConnected()){*/
                 if (outputChannel.finishConnect()) {
                     tcb.status = TCBStatus.SYN_RECEIVED;
                     // TODO: Set MSS for receiving larger packets from the device
@@ -138,6 +142,19 @@ public class TCPOutput implements Runnable {
                     tcb.selectionKey = outputChannel.register(selector, SelectionKey.OP_CONNECT, tcb);
                     return;
                 }
+
+                /* if (outputChannel.finishConnect()) {
+                    tcb.status = TCBStatus.SYN_RECEIVED;
+                    // TODO: Set MSS for receiving larger packets from the device
+                    currentPacket.updateTCPBuffer(responseBuffer, (byte) (TCPHeader.SYN | TCPHeader.ACK),
+                            tcb.mySequenceNum, tcb.myAcknowledgementNum, 0);
+                    tcb.mySequenceNum++; // SYN counts as a byte
+                } else {
+                    tcb.status = TCBStatus.SYN_SENT;
+                    selector.wakeup();
+                    tcb.selectionKey = outputChannel.register(selector, SelectionKey.OP_CONNECT, tcb);
+                    return;
+                }*/
             } catch (IOException e) {
                 Log.e(TAG, "Connection error: " + ipAndPort, e);
                 currentPacket.updateTCPBuffer(responseBuffer, (byte) TCPHeader.RST, 0, tcb.myAcknowledgementNum, 0);
@@ -210,7 +227,7 @@ public class TCPOutput implements Runnable {
                     outputChannel.write(payloadBuffer);
             } catch (IOException e) {
                 Log.e(TAG, "Network write error: " + tcb.ipAndPort, e);
-                sendRST(tcb, payloadSize, responseBuffer);
+               // sendRST(tcb, payloadSize, responseBuffer);
                 return;
             }
 

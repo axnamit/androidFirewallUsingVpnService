@@ -65,7 +65,11 @@ public class LocalVpnService extends VpnService {
         super.onCreate();
 
         isRunning = true;
-        setupVPN();
+        try {
+            setupVPN();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             udpSelector = Selector.open();
             tcpSelector = Selector.open();
@@ -136,8 +140,13 @@ public class LocalVpnService extends VpnService {
             builder.addAddress(VPN_ADDRESS, 32);
             //builder.addAddress(VPN_ADDRESS_IPV6,128 );
             builder.addRoute(VPN_ROUTE, 0);
-            // builder.allowBypass();
-         /*  for (String appPackage: appPackages) {
+            //builder.addDnsServer();
+
+            //  builder.establish()
+
+            //builder.addAllowedApplication("com.google.android.youtube");
+           /* // builder.allowBypass();
+           for (String appPackage: appPackages) {
                 try {
                     packageManager.getPackageInfo(appPackage, 0);
                     builder.addAllowedApplication(appPackage);
@@ -148,6 +157,7 @@ public class LocalVpnService extends VpnService {
             vpnInterface = builder
                     .setSession(getString(R.string.app_name))
                     .setConfigureIntent(pendingIntent)
+                    //.addAllowedApplication("com.google.android.youtube")
                     .establish();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 updateForegroundNotification(0);
@@ -179,12 +189,23 @@ public class LocalVpnService extends VpnService {
         public void run() {
             Log.i(TAG, "Started");
 
+
+
             FileChannel vpnInput = new FileInputStream(vpnFileDescriptor).getChannel();
             FileChannel vpnOutput = new FileOutputStream(vpnFileDescriptor).getChannel();
+            //ByteBuffer bufferToNetwork1 = null;
+
+            //vpnInput.write(bufferToNetwork1);
+
+/*
+                    int readBytes = vpnInput.read(bufferToNetwork);
+
+            vpnOutput.write(bufferFromNetwork);
+*/
 
 
             try {
-                System.out.println("vpninput"+ vpnInput.size());
+                System.out.println("vpninput" + vpnInput.size());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -203,23 +224,28 @@ public class LocalVpnService extends VpnService {
                     int readBytes = vpnInput.read(bufferToNetwork);
 
 
-
                     if (readBytes > 0) {
                         dataSent = true;
                         bufferToNetwork.flip();
                         Packet packet = new Packet(bufferToNetwork);
 
+                        if(packet.isTCP()){
+                            deviceToNetworkTCPQueue.offer(packet);
+                        }else {
+                            deviceToNetworkUDPQueue.offer(packet);
+                        }
 
-
+/*
                         if (packet.isUDP()) {
                             deviceToNetworkUDPQueue.offer(packet);
                         } else if (packet.isTCP()) {
                             deviceToNetworkTCPQueue.offer(packet);
                         } else {
-                            Log.w(TAG, "Unknown packet type");
+                            //deviceToNetworkTCPQueue.offer(packet);
+                            Log.e(TAG, "Unknown packet type");
                             Log.w(TAG, packet.ip4Header.toString());
                             dataSent = false;
-                        }
+                        }*/
                     } else {
                         dataSent = false;
                     }
@@ -228,7 +254,7 @@ public class LocalVpnService extends VpnService {
                     if (bufferFromNetwork != null) {
                         bufferFromNetwork.flip();
                         while (bufferFromNetwork.hasRemaining()) {
-                            vpnOutput.write(bufferFromNetwork);// close here for block all types of network call
+                            vpnOutput.write(bufferFromNetwork);   // close here for block all types of network call
                         }
                         dataReceived = true;
 
@@ -243,9 +269,9 @@ public class LocalVpnService extends VpnService {
                         Thread.sleep(10);
                 }
             } catch (InterruptedException e) {
-                Log.i(TAG, "Stopping");
+                Log.e(TAG, "Stopping");
             } catch (IOException e) {
-                Log.w(TAG, e.toString(), e);
+                Log.e(TAG, e.toString(), e);
             } finally {
                 closeResources(vpnInput, vpnOutput);
             }
@@ -293,7 +319,12 @@ public class LocalVpnService extends VpnService {
 
         executorService.shutdownNow();
         cleanup();
-        stopForeground(true);
+        try {
+            vpnInterface.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //  stopForeground(true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

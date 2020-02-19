@@ -116,6 +116,9 @@ public class UDPOutput implements Runnable
                 catch (IOException e)
                 {
                     Log.e(TAG, "Network write error: " + ipAndPort, e);
+                    System.out.println("printerror"+e.getMessage());
+
+                    /*Log.d(TAG, "run: "+e.getMessage());*/
                     channelCache.remove(ipAndPort);
                     closeChannel(outputChannel);
                 }

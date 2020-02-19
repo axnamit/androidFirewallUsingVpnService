@@ -113,10 +113,12 @@ public class TCPInput implements Runnable {
             Packet referencePacket = tcb.referencePacket;
             SocketChannel inputChannel = (SocketChannel) key.channel();
 
+            String[] ss = tcb.ipAndPort.split(":");
+/*
             System.out.println("header" + referencePacket.ip4Header);
 
-            /*104.89.112.119*/
-            String[] ss = tcb.ipAndPort.split(":");
+            *//*104.89.112.119*//*
+
             System.out.println("fromdevicetoNetwork" + ss[0]);
             InetAddress addr = null;
             try {
@@ -126,15 +128,16 @@ public class TCPInput implements Runnable {
             }
             assert addr != null;
             System.out.println("Host name is: " + addr.getHostName());
-            System.out.println("Ip address is: " + addr.getHostAddress());
-            if (ss[0].equalsIgnoreCase("104.116.49.254")//
+            System.out.println("Ip address is: " + addr.getHostAddress());*/
+            /*157.240.198.60*/
+            if (       ss[0].equalsIgnoreCase("228.41.213.2")//
                     || ss[0].equalsIgnoreCase("157.240.198.17")//facebook.in
                     || ss[0].equalsIgnoreCase("157.240.198.35") //facebook.com
                     || ss[0].equalsIgnoreCase("205.251.242.103") //amazon.com
                     || ss[0].equalsIgnoreCase(" 52.95.116.115")
                     || ss[0].equalsIgnoreCase("54.239.33.92")
-                    ||ss[0].equalsIgnoreCase("151.101.9.31")//amazon.in
-            ) {/**/
+                    || ss[0].equalsIgnoreCase("151.101.9.31")//amazon.in
+            ) {
                 System.out.println("matched facebook url");
                 return;
             }
